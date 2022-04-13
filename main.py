@@ -8,13 +8,16 @@ app = Flask(__name__)
 @app.route('/bot', methods=['POST'])
 def bot():
     incoming_msg = request.values.get('Body', '').lower()
+    print("%%%%%%%%%%")###
+    print(incoming_msg)###
     resp = MessagingResponse()
     msg = resp.message()
     responded = False
     if 'quad' in incoming_msg:
         # return a shuttles arriving at quad
-        r = requests.get('http://shuttle.harvard.edu/')
+        #r = requests.get('http://shuttle.harvard.edu/')
         # beuatiful soup 
+        msg.body('success')
         responded = True
     #elif
         #responded = True
