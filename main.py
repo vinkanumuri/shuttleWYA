@@ -13,10 +13,8 @@ from selenium.common.exceptions import NoSuchElementException
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-#account_sid = os.environ['TWILIO_ACCOUNT_SID'] 
-account_sid = 'ACf8f2d3695691bb558c79f3beb0c60d76'
-#auth_token = os.environ['TWILIO_AUTH_TOKEN']
-auth_token = '05e6754fcacf46aee0b180c74efa62e2'
+account_sid = os.environ['TWILIO_ACCOUNT_SID'] 
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
 client = Client(account_sid, auth_token)
 
 stops = {58381: ['784 memorial drive', 'mem drive', 'memorial drive', 'mem dr', 'memorial dr'], 
