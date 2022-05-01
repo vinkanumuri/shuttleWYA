@@ -10,6 +10,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as ec
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
@@ -17,21 +19,21 @@ account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 client = Client(account_sid, auth_token)
 
-stops = {58381: ['784 memorial drive', 'mem drive', 'memorial drive', 'mem dr', 'memorial dr'], 
-         5048: ['widener gate', 'widener'],
-         5046: ['mather house', 'mather'], 
-         5047: ['the inn', 'inn'],
-         5043: ['maxwell dworkin', 'md'], 
-         6248: ['science center', 'sc'],
-         5044: ['memorial hall', 'mem hall', 'mem'], 
-         5045: ['lamont library', 'lamont'],
-         6854: ['leverett house', 'leverett', 'lev'], 
-         5049: ['quad', 'quadrangle', 'radcliff quadrangle'],
-         23509: ['radcliff yard'], 
-         5050: ['mass and garden', 'mass ave', 'massachusetts ave', 'massachusetts avenue', 'yard', 'harvard yard'],
-         5042: ['law school', 'law', 'harvard law'],
-         5051: ['winthrop house', 'winthrop', 'throp'], 
-         5036: ['1 western ave', 'western ave', 'western', 'western avenue'],
+stops = {'784 memorial drive': ['784 memorial drive', 'mem drive', 'memorial drive', 'mem dr', 'memorial dr'], #58381
+         'widener gate': ['widener gate', 'widener'], #5048
+         'mather house': ['mather house', 'mather'], #5046
+         'the inn': ['the inn', 'inn'], #5047
+         'maxwell dworkin': ['maxwell dworkin', 'md'], #5043
+         'science center': ['science center', 'sc'], #6248
+         'memorial hall': ['memorial hall', 'mem hall', 'mem'], #5044
+         'lamont library': ['lamont library', 'lamont'], #5045
+         'leverett house': ['leverett house', 'leverett', 'lev'], #6854
+         'quad': ['quad', 'quadrangle', 'radcliff quadrangle'], #5049
+         'radcliff yard': ['radcliff yard'], #23509
+         'mass and garden': ['mass and garden', 'mass ave', 'massachusetts ave', 'massachusetts avenue', 'yard', 'harvard yard'], #5050
+         'law school': ['law school', 'law', 'harvard law'], #5042
+         'winthrop house': ['winthrop house', 'winthrop', 'throp'], #5051
+         '1 western ave': ['1 western ave', 'western ave', 'western', 'western avenue'], #5036
         #  5041: ['harvard square', 'square'], #northbound 
         #  58344: ['harvard square', 'square'], #southbound 
         #  5039: ['stadium'], #northbound
@@ -53,11 +55,20 @@ def scrapePassio(stop_name):
     try:
         import time ###
         time.sleep(5)###
+        wait = WebDriverWait(driver, 10)
+        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'form-control')))
         driver.find_element(by=By.CLASS_NAME, value='form-control').send_keys(stop_name)
+        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front')))
         time.sleep(5)###
         driver.find_element(by=By.CLASS_NAME, value='form-control').send_keys(Keys.RETURN)
-        time.sleep(5)###
-        info = driver.find_element(by=By.CLASS_NAME, value='infowindow').screenshot('screenshot.png')
+        time.sleep(10)###
+        #driver.get_screenshot_as_file('test.png')###
+        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'infowindow'))) #cahnge to wait until load completely
+        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front')))
+        info = driver.find_element(by=By.CLASS_NAME, value='infowindow')#
+        info.screenshot('screenshot.png')
+        print(info.get_attribute("innerHTML"))
+
     except NoSuchElementException:
         print('element not found')
     driver.quit()
@@ -74,9 +85,11 @@ def bot():
     for key in stops:
         if incoming_msg in stops[key]:
             # get relevant data from shuttle.harvard.edu
-            stopid = str(key) ###
-            msg = client.messages.create(to=request.values.get("From"), from_=request.values.get("To"),
-                                         body=stopid) ###
+            stop_name = str(key)
+            scrapePassio(stop_name)
+            print('check screenshot.png')
+            '''msg = client.messages.create(to=request.values.get("From"), from_=request.values.get("To"),
+                                         body='Shuttles arriving at '+stop_name, media_url='')'''
             responded = True
             break
 
@@ -87,7 +100,13 @@ def bot():
 
 if __name__ == '__main__':
     #app.run()
-    scrapePassio('widener')
-     
+    scrapePassio('quad')
+
+'''
+TODO:
+- get it to wait till loaded
+- text back the correct details instead of taking screenshot
+- if there's time change time delays to wait to loads
+'''  
 
     
