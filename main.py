@@ -47,32 +47,52 @@ stops = {'784 memorial drive': ['784 memorial drive', 'mem drive', 'memorial dri
 
 def scrapePassio(stop_name):
     options = Options()
-    options.headless = True
+    #options.headless = True
     options.add_argument("--window-size=1920,1200")
     DRIVER_PATH = '/Users/vinay/Dev/shuttleWYA/twilio-bot-venv/chromedriver'
     driver = webdriver.Chrome(options=options, executable_path=DRIVER_PATH)
     driver.get("https://shuttle.harvard.edu/")
     try:
-        import time ###
-        time.sleep(5)###
-        wait = WebDriverWait(driver, 10)
-        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'form-control')))
+        import time
+        time.sleep(3)
         driver.find_element(by=By.CLASS_NAME, value='form-control').send_keys(stop_name)
-        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front')))
-        time.sleep(5)###
+        time.sleep(2)
         driver.find_element(by=By.CLASS_NAME, value='form-control').send_keys(Keys.RETURN)
-        time.sleep(10)###
-        #driver.get_screenshot_as_file('test.png')###
-        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'infowindow'))) #cahnge to wait until load completely
-        #wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front')))
+        time.sleep(4)
         info = driver.find_element(by=By.CLASS_NAME, value='infowindow')#
         info.screenshot('screenshot.png')
-        print(info.get_attribute("innerHTML"))
+        infohtml = info.get_attribute("innerHTML")
+        ### create dictionary of details
+        import re
+        infohtml = infohtml.replace('<i class="glyphicon glyphicon-heart"></i>', "a")
+        try:
+            shuttle_names = []
+            shuttle_times = []
+            for name in re.findall('</i>(.+?)</span>', infohtml):
+                shuttle_names.append(name)
+                start_ind = infohtml.find(name)
+                time_string = infohtml[start_ind:start_ind+400]
 
+                print(time_string, '\n')###
+                #rgb(255, 234, 63);"> 31-37 min</span>
+                #rgb(255, 255, 255);"> no vehicles</span>
+                time = re.search('rgb(255, 234, 63);">(.+?)</span>', time_string).group(1)
+                print(time)
+                #time = '3 min'###
+
+                shuttle_times.append(time)
+            print(shuttle_names)###
+            print(shuttle_times)###
+            shuttle_info = {}
+            for i in range(len(shuttle_times)):
+                if shuttle_times[i] is not None:
+                    shuttle_info[shuttle_names[i]] = shuttle_times[i]
+        except AttributeError:
+            shuttle_info = None
     except NoSuchElementException:
         print('element not found')
     driver.quit()
-    pass
+    return shuttle_info
     
 app = Flask(__name__)
 @app.route('/bot', methods=['GET', 'POST'])
@@ -86,27 +106,24 @@ def bot():
         if incoming_msg in stops[key]:
             # get relevant data from shuttle.harvard.edu
             stop_name = str(key)
-            scrapePassio(stop_name)
-            print('check screenshot.png')
-            '''msg = client.messages.create(to=request.values.get("From"), from_=request.values.get("To"),
-                                         body='Shuttles arriving at '+stop_name, media_url='')'''
+            shut_info = scrapePassio(stop_name)
+            response = '\n\nArriving shuttles:\n'
+            if shut_info is not None:
+                for shuttle in shut_info:
+                    response = response + shuttle+' in '+shut_info[shuttle]+'\n'
+            else:
+                response = 'no shuttles'
+            msg = client.messages.create(to=request.values.get("From"), from_=request.values.get("To"),
+                                            body=response)
             responded = True
             break
 
     if not responded:
         msg = client.messages.create(to=request.values.get("From"), from_=request.values.get("To"),
                                          body='Please text me a shuttle stop to get updates!')
-    return '' #str(resp)
+    return response
 
 if __name__ == '__main__':
     #app.run()
-    scrapePassio('quad')
-
-'''
-TODO:
-- get it to wait till loaded
-- text back the correct details instead of taking screenshot
-- if there's time change time delays to wait to loads
-'''  
-
+    scrapePassio('quad') 
     
