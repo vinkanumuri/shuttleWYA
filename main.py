@@ -59,7 +59,7 @@ def scrapePassio(stop_name):
         time.sleep(2)
         driver.find_element(by=By.CLASS_NAME, value='form-control').send_keys(Keys.RETURN)
         time.sleep(4)
-        info = driver.find_element(by=By.CLASS_NAME, value='infowindow')#
+        info = driver.find_element(by=By.CLASS_NAME, value='infowindow')
         info.screenshot('screenshot.png')
         infohtml = info.get_attribute("innerHTML")
         ### create dictionary of details
@@ -72,17 +72,16 @@ def scrapePassio(stop_name):
                 shuttle_names.append(name)
                 start_ind = infohtml.find(name)
                 time_string = infohtml[start_ind:start_ind+400]
-
-                print(time_string, '\n')###
-                #rgb(255, 234, 63);"> 31-37 min</span>
-                #rgb(255, 255, 255);"> no vehicles</span>
-                time = re.search('rgb(255, 234, 63);">(.+?)</span>', time_string).group(1)
-                print(time)
-                #time = '3 min'###
-
+                try:
+                    start_ind = time_string.find('background: rgb(255, 234, 63);">')+32
+                    end_ind = time_string[start_ind:].find('</span><span') + start_ind
+                    time = time_string[start_ind:end_ind]
+                    if len(time) > 20:
+                        time = None
+                except:
+                    time = None
                 shuttle_times.append(time)
-            print(shuttle_names)###
-            print(shuttle_times)###
+            #print(shuttle_times)
             shuttle_info = {}
             for i in range(len(shuttle_times)):
                 if shuttle_times[i] is not None:
@@ -124,6 +123,6 @@ def bot():
     return response
 
 if __name__ == '__main__':
-    #app.run()
-    scrapePassio('quad') 
+    app.run()
+    #scrapePassio('quad') 
     
