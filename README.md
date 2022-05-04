@@ -18,16 +18,8 @@ Desired functionality is allowing users to text the bot one fo the following shu
 - etc.
 
 Example output from bot:
-"1. 1636'er in 3-4 min
- 2. crimson cruiser in 10 min
- 3. quad/sec express in 22 min
- Respond with 1, 2, or 3 to get a 5 min and 2 min warning for shuttle arrival"
-
-Current state:
-- Twilio phone number set up and tested
-- basic flask code set up
-
-TODO:
-- web scrapping functionality
-- 5 min + 2 min warning code
-- testing
+Arriving shuttles:
+1636'er in 3-4 min
+crimson cruiser in 10 min
+quad sec express in 22 min
+ 
